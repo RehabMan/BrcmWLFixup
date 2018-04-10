@@ -6,6 +6,7 @@
 //
 
 #include <Headers/plugin_start.hpp>
+#include <Headers/kern_api.hpp>
 
 #include "kern_brcm.hpp"
 
@@ -28,7 +29,7 @@ static void setSystemVersions() {
 static void brcmStart() {
   setSystemVersions();
   
-  SYSLOG("brcm @ starting on macOS 10.%d.%d", sysMajorVersion, sysMinorVersion);
+  SYSLOG("brcmwlfixup", "starting on macOS 10.%d.%d", sysMajorVersion, sysMinorVersion);
   brcm.init();
 }
 
@@ -50,7 +51,8 @@ PluginConfiguration ADDPR(config)
   
   // Lilu 1.1.0 and greater compatibility
   parseModuleVersion(xStringify(MODULE_VERSION)),
-  
+  LiluAPI::AllowNormal | LiluAPI::AllowInstallerRecovery,
+ 
   bootargOff,
   arrsize(bootargOff),
   

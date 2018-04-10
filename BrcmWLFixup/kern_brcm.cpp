@@ -38,9 +38,9 @@ static const char *symbolList[] {
 };
 
 static KernelPatcher::KextInfo kextList[] {
-  { idList[kBrcm4360], &binList[kBrcm4360], 1, true, {}, KernelPatcher::KextInfo::Unloaded },
-  { idList[kBrcmNIC],  &binList[kBrcmNIC],  1, true, {}, KernelPatcher::KextInfo::Unloaded },
-  { idList[kBrcmMFG],  &binList[kBrcmMFG],  1, true, {}, KernelPatcher::KextInfo::Unloaded }
+    { idList[kBrcm4360], &binList[kBrcm4360], 1, { true }, {}, KernelPatcher::KextInfo::Unloaded },
+    { idList[kBrcmNIC],  &binList[kBrcmNIC],  1, { true }, {}, KernelPatcher::KextInfo::Unloaded },
+    { idList[kBrcmMFG],  &binList[kBrcmMFG],  1, { true }, {}, KernelPatcher::KextInfo::Unloaded }
 };
 static size_t kextListSize = arrsize(kextList);
 
@@ -54,20 +54,20 @@ bool BRCM::init() {
   }, this);
   
   if (error != LiluAPI::Error::NoError) {
-    SYSLOG("brcm @ failed to register onPatcherLoad %d", error);
+    SYSLOG("brcmwlfixup", "failed to register onPatcherLoad %d", error);
     return false;
   }
-  
+
   return true;
 }
 
 bool BRCM::myCheckBoardId(const char *boardID) {
   if (callbackBoardID && callbackPatcher && callbackBoardID->orgCheckBoardId) {
-    DBGLOG("brcm @ forcing brcm driver for board %s", boardID);
+    DBGLOG("brcmwlfixup", "forcing brcm driver for board %s", boardID);
     // just let it return true, that's all we want
     return true;
   } else {
-    SYSLOG("brcm @ checkBoardId callbabck arrived at nowhere");
+    SYSLOG("brcmwlfixup", "checkBoardId callbabck arrived at nowhere");
     return false;
   }
 }
@@ -78,51 +78,51 @@ void BRCM::processKext(KernelPatcher &patcher, size_t index, mach_vm_address_t a
       if (kextList[i].loadIndex == index) {
         // patch AirPortBrcm4360
         if (!strcmp(kextList[i].id, idList[kBrcm4360])) {
-          DBGLOG("brcm @ found %s", idList[kBrcm4360]);
+          DBGLOG("brcmwlfixup", "found %s", idList[kBrcm4360]);
           auto check_Board_Id = patcher.solveSymbol(index, symbolList[kBrcm4360]);
           if (check_Board_Id) {
-            DBGLOG("brcm @ obtained %s", symbolList[kBrcm4360]);
+            DBGLOG("brcmwlfixup", "obtained %s", symbolList[kBrcm4360]);
             orgCheckBoardId = reinterpret_cast<t_check_Board_Id>(patcher.routeFunction(check_Board_Id, reinterpret_cast<mach_vm_address_t>(myCheckBoardId), true));
             if (patcher.getError() == KernelPatcher::Error::NoError) {
-              DBGLOG("brcm @ routed %s", symbolList[kBrcm4360]);
+              DBGLOG("brcmwlfixup", "routed %s", symbolList[kBrcm4360]);
               progressState |= ProcessingState::BRCM4360Patched;
               break;
             } else {
-              SYSLOG("brcm @ failed to hook %s callback", symbolList[kBrcm4360]);
+              SYSLOG("brcmwlfixup", "failed to hook %s callback", symbolList[kBrcm4360]);
             }
           }
         }
         
         // patch AirPortBrcmNIC
         if (!strcmp(kextList[i].id, idList[kBrcmNIC])) {
-          DBGLOG("brcm @ found %s", idList[kBrcmNIC]);
+          DBGLOG("brcmwlfixup", "found %s", idList[kBrcmNIC]);
           auto check_Board_Id = patcher.solveSymbol(index, symbolList[kBrcmNIC]);
           if (check_Board_Id) {
-            DBGLOG("brcm @ obtained %s", symbolList[kBrcmNIC]);
+            DBGLOG("brcmwlfixup", "obtained %s", symbolList[kBrcmNIC]);
             orgCheckBoardId = reinterpret_cast<t_check_Board_Id>(patcher.routeFunction(check_Board_Id, reinterpret_cast<mach_vm_address_t>(myCheckBoardId), true));
             if (patcher.getError() == KernelPatcher::Error::NoError) {
-              DBGLOG("brcm @ routed %s", symbolList[kBrcmNIC]);
+              DBGLOG("brcmwlfixup", "routed %s", symbolList[kBrcmNIC]);
               progressState |= ProcessingState::BRCMNICPatched;
               break;
             } else {
-              SYSLOG("brcm @ failed to hook %s callback", symbolList[kBrcmNIC]);
+              SYSLOG("brcmwlfixup", "failed to hook %s callback", symbolList[kBrcmNIC]);
             }
           }
         }
         
         // patch AirPortBrcmNIC-MFG
         if (!strcmp(kextList[i].id, idList[kBrcmMFG])) {
-          DBGLOG("brcm @ found %s", idList[kBrcmMFG]);
+          DBGLOG("brcmwlfixup", "found %s", idList[kBrcmMFG]);
           auto check_Board_Id = patcher.solveSymbol(index, symbolList[kBrcmMFG]);
           if (check_Board_Id) {
-            DBGLOG("brcm @ obtained %s", symbolList[kBrcmMFG]);
+            DBGLOG("brcmwlfixup", "obtained %s", symbolList[kBrcmMFG]);
             orgCheckBoardId = reinterpret_cast<t_check_Board_Id>(patcher.routeFunction(check_Board_Id, reinterpret_cast<mach_vm_address_t>(myCheckBoardId), true));
             if (patcher.getError() == KernelPatcher::Error::NoError) {
-              DBGLOG("brcm @ routed %s", symbolList[kBrcmMFG]);
+              DBGLOG("brcmwlfixup", "routed %s", symbolList[kBrcmMFG]);
               progressState |= ProcessingState::BRCMNIC_MFGPatched;
               break;
             } else {
-              SYSLOG("brcm @ failed to hook %s callback", symbolList[kBrcmMFG]);
+              SYSLOG("brcmwlfixup", "failed to hook %s callback", symbolList[kBrcmMFG]);
             }
           }
         }
